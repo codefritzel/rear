@@ -16,6 +16,9 @@ elif test $qlist_ret -eq 2; then
 			Error "Could not logon to Commvault CommServe with credentials from GALAXY11_USER ($GALAXY11_USER) and GALAXY11_PASSWORD. Check the log file."
 		LogPrint "CommVault client logged in with credentials from GALAXY11_USER ($GALAXY11_USER) and GALAXY11_PASSWORD"
 	else
+        is_true "$NON_INTERACTIVE" && \
+            Error "Login is not possible in non-interactive mode. Set variables GALAXY11_USER and GALAXY11_PASSWORD."
+        
 		# try to logon manually
 		Print "Please logon to your Commvault CommServe with suitable credentials:"
 		qlogin $(test "$GALAXY11_Q_ARGUMENTFILE" && echo "-af $GALAXY11_Q_ARGUMENTFILE") 0<&6 1>&7 2>&8 || \

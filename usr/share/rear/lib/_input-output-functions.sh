@@ -1298,6 +1298,15 @@ function UserInput () {
             test "$input_words_array_name" && read -a "$input_words_array_name" <<<"$input_string"
         fi
     fi
+    # Check the non-interactive mode and throw an error if default_input was not set
+    if is_true "$NON_INTERACTIVE"; then
+        if ! contains_visible_char "$default_input" ; then
+            echo ""
+            Error "UserInput: a default value must be specified in non-interactive mode"
+        fi
+        DebugPrint "UserInput: non-interactive mode is active - using default input"
+        input_string="$default_input"
+    fi
     # When there is no (non empty) automated user input read the user input:
     local return_code=0
     if ! contains_visible_char "$input_string" ; then
