@@ -46,11 +46,11 @@ if jobid=$(qoperation restore -af $TMP_DIR/commvault.restore.options); then
 
     while true; do
         sleep 60
-        # output of qlist job -co sc -j ## :
+        # output of qlist job -co sc -j <JobId> :
 
         # STATUS     COMPLETE PERCENTAGE
         # ------     -------------------
-        # Running
+        # Running                  
         jobstatus=$(qlist job -j $jobid -co sc | tail -n 1)
 
         # stop waiting if the job reached a final status
@@ -74,6 +74,29 @@ if jobid=$(qoperation restore -af $TMP_DIR/commvault.restore.options); then
             Error "Restore job has an unknown state [$jobstatus], aborting."
             ;;
         esac
+
+        # output of "qlist job -co r -j <JobId>" without errors
+        # failture reasons
+        # FAILURE REASON
+        # --------------
+        #
+
+        # output of "qlist job -co r -j <JobId>" with errors
+        # FAILURE REASON
+        # --------------
+        # 402653226
+        #
+        # Messages for Job failure/pending reasons:
+        # 31875791	402653226 -> Cannot start restore program on host [myhost.example.com*myhost*8400*8402] - a network error occurred or the product's services are not running.
+        local joberror_output=$(qlist job -co r -j $jobid)
+        local joberror=$(echo -n "$joberror_output" | sed -n 3p)
+        if contains_visible_char "$joberror"; then
+            Log "$joberror_output"
+            
+            # kill pending job with errors
+            qoperation jobcontrol -o kill -j $jobid && Log "Job $jobid was successfully killed."
+            Error "Job $jobid has status pending with errors. Check log file."
+        fi
     done
 
 else
